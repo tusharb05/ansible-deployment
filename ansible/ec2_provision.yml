@@ -1,0 +1,67 @@
+---
+- name: Spin up EC2 servers
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: ap-south-1
+    instance_type: t2.micro
+    image_id: ami-0b09627181c8d5778
+    key_name: devops-practice
+
+    app_instances:
+      - web1
+      - web2
+    load_balancer: load-balancer
+
+  tasks:
+
+    - name: Launch app instances (web1 & web2)
+      amazon.aws.ec2_instance:
+        name: "{{ item }}"
+        key_name: "{{ key_name }}"
+        region: "{{ region }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ image_id }}"
+        wait: yes
+        count: 1
+        tags:
+          Name: "{{ item }}"
+      loop: "{{ app_instances }}"
+      register: app_instances_result
+
+    - name: Launch load balancer instance
+      amazon.aws.ec2_instance:
+        name: "{{ load_balancer }}"
+        key_name: "{{ key_name }}"
+        region: "{{ region }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ image_id }}"
+        wait: yes
+        count: 1
+        tags:
+          Name: "{{ load_balancer }}"
+      register: lb_result
+
+    # - name: Print app instance IPs
+    #   debug:
+    #     msg: "{{ item.public_ip_address }}"
+    #   loop: "{{ app_instances_result.results | map(attribute='instances') | map('first') | list }}"
+
+    # - name: Print load balancer IP
+    #   debug:
+    #     msg: "{{ lb_result.instances[0].public_ip_address }}"
+
+    - name: Extract public IPs of app instances
+      set_fact:
+        app_ips: "{{ app_instances_result.results | map(attribute='instances') | map('first') | map(attribute='public_ip_address') | list }}"
+
+    - name: Extract public IP of load balancer
+      set_fact:
+        lb_ip: "{{ lb_result.instances[0].public_ip_address }}"
+
+    - name: Generate dynamic inventory.ini
+      template:
+        src: inventory.ini.j2
+        dest: inventory.ini
+

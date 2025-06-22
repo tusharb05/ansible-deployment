@@ -1,0 +1,9 @@
+.env*
+
+node_modules/
+
+devops-practice.pem
+
+venv/
+
+inventory.ini

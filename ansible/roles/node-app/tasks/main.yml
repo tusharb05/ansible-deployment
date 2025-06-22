@@ -1,0 +1,49 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for node-app
+- name: Install Docker
+  yum:
+    name: docker.io
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Ensure Docker is running
+  service: docker
+    state: started
+    enabled: yes
+  become: true
+
+- name: Install git
+  yum: 
+    name: git
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Clone repo
+  git: 
+    repo: "https://github.com/tusharb05/ansible-deployment"
+    dest: /home/ec2-user/express-app
+    version: main
+  become: true
+  become_user: ec2-user
+
+- name: Build Docker image from Dockerfile
+  docker_image:
+    name: express-ping-app
+    path: /home/ec2-user/express-ping-app
+    tag: latest
+  become: true
+
+- name: Run Express app container
+  docker_container:
+    name: express-app
+    image: express-ping-app:latest
+    state: started
+    recreate: yes
+    ports:
+      - "3000:3000"
+    env:
+      SERVER_NAME: "{{ inventory_hostname }}"
+  become: true

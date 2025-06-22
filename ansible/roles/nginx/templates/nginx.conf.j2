@@ -1,0 +1,20 @@
+worker_processes auto;
+events { worker_connections 1024; }
+
+http {
+    upstream express_app {
+    {% for host in groups['app_servers'] %}
+        server {{ host }}:3000;
+    {% endfor %}
+    }
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://express_app;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+}

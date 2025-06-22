@@ -1,0 +1,10 @@
+region: ap-south-1
+instance_type: t2.micro
+image_id: ami-0b09627181c8d5778
+key_name: devops-practice
+
+app_instances:
+  - web1
+  - web2
+
+load_balancer: load-balancer

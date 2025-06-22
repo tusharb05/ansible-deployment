@@ -1,0 +1,12 @@
+- name: Provision app servers
+  hosts: app_servers
+  become: true
+  roles:
+    - node-app
+
+
+- name: Configure nginx server
+  hosts: load_balancer
+  beocme: true
+  roles:
+    - nginx
