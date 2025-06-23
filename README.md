@@ -20,17 +20,17 @@ This project demonstrates a complete infrastructure-as-code and CI/CD setup to d
 
 ## 🌐 Architecture Overview
 
-[Architecture diagram](./assets/arch.png)
+![Architecture diagram](./assets/arch.png)
 
 
 --- 
 
 ## 📷 Output
 
-[output1](./assets/output1.png)
-[output2](./assets/output2.png)
-[output3](./assets/output3.png)
-[output4](./assets/output4.png)
+![output1](./assets/output1.png)
+![output2](./assets/output2.png)
+![output3](./assets/output3.png)
+![output4](./assets/output4.png)
 
 ---
 
