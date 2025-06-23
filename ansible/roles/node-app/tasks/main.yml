@@ -1,43 +1,67 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for node-app
-- name: Install Docker
-  yum:
-    name: docker.io
+
+# Task 1: Install all system dependencies in one go
+- name: Install required system packages
+  ansible.builtin.yum:
+    name:
+      - docker
+      - git
+      - python3-docker  # <-- Use YUM to install the Docker SDK, avoiding pip/rpm conflicts
     state: present
     update_cache: yes
   become: true
 
-- name: Ensure Docker is running
-  service: docker
+# Task 2: Add the ec2-user to the 'docker' group for permission
+- name: Add ec2-user to the docker group
+  ansible.builtin.user:
+    name: ec2-user
+    groups: docker
+    append: yes
+  become: true
+
+# Task 3: Ensure the Docker service is running
+- name: Ensure Docker is running and enabled
+  ansible.builtin.service:
+    name: docker
     state: started
     enabled: yes
   become: true
 
-- name: Install git
-  yum: 
-    name: git
-    state: present
-    update_cache: yes
+# Task 4: Reboot to apply group membership changes reliably
+- name: Reboot the server to apply group changes
+  ansible.builtin.reboot:
+    msg: "Rebooting to apply Docker group membership"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: whoami
   become: true
 
+# Task 5: Clone the application repository
 - name: Clone repo
-  git: 
+  ansible.builtin.git:
     repo: "https://github.com/tusharb05/ansible-deployment"
     dest: /home/ec2-user/express-app
     version: main
   become: true
   become_user: ec2-user
 
+# Task 6: Build the Docker image using modern syntax
 - name: Build Docker image from Dockerfile
-  docker_image:
+  community.docker.docker_image:
     name: express-ping-app
-    path: /home/ec2-user/express-ping-app
     tag: latest
+    source: build
+    build:
+      path: /home/ec2-user/express-app/app
   become: true
 
+# Task 7: Run the application container
 - name: Run Express app container
-  docker_container:
+  community.docker.docker_container:
     name: express-app
     image: express-ping-app:latest
     state: started

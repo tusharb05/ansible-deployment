@@ -1,8 +1,9 @@
 ---
-- name: Spin up EC2 servers
+- name: Spin up EC2 servers with SSH access
   hosts: localhost
   connection: local
   gather_facts: no
+
   vars:
     region: ap-south-1
     instance_type: t2.micro
@@ -16,6 +17,27 @@
 
   tasks:
 
+    - name: Create security group for Ansible SSH and HTTP
+      amazon.aws.ec2_group:
+        name: ansible-sg
+        description: Allow SSH and HTTP
+        region: "{{ region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: -1
+            from_port: 0
+            to_port: 0
+            cidr_ip: 0.0.0.0/0
+      register: ssh_sg
+
     - name: Launch app instances (web1 & web2)
       amazon.aws.ec2_instance:
         name: "{{ item }}"
@@ -25,6 +47,9 @@
         image_id: "{{ image_id }}"
         wait: yes
         count: 1
+        network:
+          assign_public_ip: yes
+          security_group_id: "{{ ssh_sg.group_id }}"
         tags:
           Name: "{{ item }}"
       loop: "{{ app_instances }}"
@@ -39,18 +64,12 @@
         image_id: "{{ image_id }}"
         wait: yes
         count: 1
+        network:
+          assign_public_ip: yes
+          security_group_id: "{{ ssh_sg.group_id }}"
         tags:
           Name: "{{ load_balancer }}"
       register: lb_result
-
-    # - name: Print app instance IPs
-    #   debug:
-    #     msg: "{{ item.public_ip_address }}"
-    #   loop: "{{ app_instances_result.results | map(attribute='instances') | map('first') | list }}"
-
-    # - name: Print load balancer IP
-    #   debug:
-    #     msg: "{{ lb_result.instances[0].public_ip_address }}"
 
     - name: Extract public IPs of app instances
       set_fact:
@@ -64,4 +83,3 @@
       template:
         src: inventory.ini.j2
         dest: inventory.ini
-
