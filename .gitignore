@@ -7,3 +7,5 @@ devops-practice.pem
 venv/
 
 inventory.ini
+
+.ssh
