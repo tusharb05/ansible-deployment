@@ -9,7 +9,7 @@
     name:
       - docker
       - git
-      - python3-docker  # For Docker SDK support
+      - python3-docker  
     state: present
     update_cache: yes
   become: true
@@ -23,9 +23,6 @@
   become: true
 
 # Task 3: Reset the connection to apply group changes (Replaces Reboot)
-# NOTE: A reboot is slow and unnecessary. To make the new 'docker' group
-# membership active for the ec2-user in this playbook run, we can simply
-# reset the SSH connection. This is much faster and more efficient.
 - name: Reset Ansible connection to apply group changes
   ansible.builtin.meta: reset_connection
   become: true
@@ -54,7 +51,7 @@
   community.docker.docker_container:
     name: express-app
     state: absent
-  ignore_errors: true # It's okay if the container doesn't exist on the first run
+  ignore_errors: true 
   become: true
 
 # Task 7: Remove old Docker image (forces clean rebuild)
@@ -63,15 +60,10 @@
     name: express-ping-app
     tag: latest
     state: absent
-  ignore_errors: true # It's okay if the image doesn't exist
+  ignore_errors: true 
   become: true
 
 # Task 8: Build Docker image from updated code
-# NOTE: This is the key fix. Docker's build process caches layers aggressively.
-# Even if your git source code changes, Docker might not invalidate the cache for the
-# `COPY . .` step in your Dockerfile.
-# `force_source: yes` tells Ansible to force a rebuild of the image,
-# ignoring the cache and ensuring your new code is always used.
 - name: Build Docker image from Dockerfile
   community.docker.docker_image:
     name: express-ping-app
@@ -79,7 +71,7 @@
     source: build
     build:
       path: /home/ec2-user/express-app/app
-    force_source: yes # THIS IS THE FIX: Force rebuild to prevent using stale cache
+    force_source: yes 
   become: true
 
 # Task 9: Start new container with updated image
@@ -88,7 +80,7 @@
     name: express-app
     image: express-ping-app:latest
     state: started
-    recreate: yes # Ensures the container is recreated if the image or config changes
+    recreate: yes 
     restart_policy: always
     ports:
       - "3000:3000"
