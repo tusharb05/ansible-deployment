@@ -42,7 +42,7 @@ This project demonstrates a complete infrastructure-as-code and CI/CD setup to d
          ┌──────────────────────────┐
          │ EC2: Nginx Load Balancer │
          └──────────────────────────┘
-
+```
 
 ---
 
