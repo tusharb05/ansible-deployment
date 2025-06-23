@@ -2,46 +2,45 @@
 ---
 # tasks file for node-app
 
-# Task 1: Install all system dependencies in one go
+# Task 1: Install system dependencies
 - name: Install required system packages
   ansible.builtin.yum:
     name:
       - docker
       - git
-      - python3-docker  # <-- Use YUM to install the Docker SDK, avoiding pip/rpm conflicts
+      - python3-docker  # For Docker SDK support
     state: present
     update_cache: yes
   become: true
 
-# Task 2: Add the ec2-user to the 'docker' group for permission
-- name: Add ec2-user to the docker group
+# Task 2: Add ec2-user to docker group
+- name: Add ec2-user to docker group
   ansible.builtin.user:
     name: ec2-user
     groups: docker
     append: yes
   become: true
 
-# Task 3: Ensure the Docker service is running
-- name: Ensure Docker is running and enabled
+# Task 3: Ensure Docker is started and enabled
+- name: Ensure Docker is running
   ansible.builtin.service:
     name: docker
     state: started
     enabled: yes
   become: true
 
-# Task 4: Reboot to apply group membership changes reliably
-- name: Reboot the server to apply group changes
+# Task 4: Reboot to apply group changes
+- name: Reboot to apply docker group changes
   ansible.builtin.reboot:
     msg: "Rebooting to apply Docker group membership"
     connect_timeout: 5
     reboot_timeout: 300
-    pre_reboot_delay: 0
     post_reboot_delay: 30
     test_command: whoami
   become: true
 
-# Task 5: Clone the application repository
-- name: Clone repo
+# Task 5: Clone app repo
+- name: Clone the latest app code
   ansible.builtin.git:
     repo: "https://github.com/tusharb05/ansible-deployment"
     dest: /home/ec2-user/express-app
@@ -51,7 +50,24 @@
   become: true
   become_user: ec2-user
 
-# Task 6: Build the Docker image using modern syntax
+# Task 6: Stop and remove existing container (if any)
+- name: Stop and remove old container
+  community.docker.docker_container:
+    name: express-app
+    state: absent
+  ignore_errors: true
+  become: true
+
+# Task 7: Remove old Docker image (forces clean rebuild)
+- name: Remove old Docker image (if exists)
+  community.docker.docker_image:
+    name: express-ping-app
+    tag: latest
+    state: absent
+  ignore_errors: true
+  become: true
+
+# Task 8: Build Docker image from updated code
 - name: Build Docker image from Dockerfile
   community.docker.docker_image:
     name: express-ping-app
@@ -61,13 +77,14 @@
       path: /home/ec2-user/express-app/app
   become: true
 
-# Task 7: Run the application container
+# Task 9: Start new container with updated image
 - name: Run Express app container
   community.docker.docker_container:
     name: express-app
     image: express-ping-app:latest
     state: started
-    recreate: yes
+    recreate: true
+    restart_policy: always
     ports:
       - "3000:3000"
     env:
