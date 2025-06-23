@@ -1,0 +1,40 @@
+name: Deploy Express App
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧰 Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+          
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: 🛠 Create inventory.ini from GitHub Secrets
+        run: |
+          mkdir -p ansible
+          echo "[app_servers]" > ansible/inventory.ini
+          echo "${{ secrets.APP_SERVER_1 }}" >> ansible/inventory.ini
+          echo "${{ secrets.APP_SERVER_2 }}" >> ansible/inventory.ini
+          echo "[load_balancer]" >> ansible/inventory.ini
+          echo "${{ secrets.LOAD_BALANCER_IP }}" >> ansible/inventory.ini
+
+      - name: Create .pem file
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/devops.pem
+          chmod 600 ~/.ssh/devops.pem
+
+      - name: 🚀 Run Ansible Playbook
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml \
+            --private-key ~/.ssh/devops.pem -u ec2-user
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: False
