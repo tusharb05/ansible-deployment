@@ -46,6 +46,8 @@
     repo: "https://github.com/tusharb05/ansible-deployment"
     dest: /home/ec2-user/express-app
     version: main
+    force: yes
+    update: yes
   become: true
   become_user: ec2-user
 
