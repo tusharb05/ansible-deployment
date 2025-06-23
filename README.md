@@ -1,6 +1,6 @@
 # 🚀 End-to-End Express App Deployment using Ansible, Docker, and Nginx on AWS
 
-This project demonstrates a complete infrastructure-as-code and CI/CD setup to deploy a minimal Express.js application in a production-like environment. It uses **AWS EC2**, **Docker**, **Nginx**, and **Ansible**, with automated deployment via **GitHub Actions**.
+This project demonstrates a complete infrastructure-as-code and CI/CD setup to deploy a minimal Express.js application in a production-like environment. It uses **AWS EC2**, **Docker**, **Nginx** for Load balancing, and **Ansible**, with automated deployment via **GitHub Actions**.
 
 ---
 
