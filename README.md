@@ -20,29 +20,17 @@ This project demonstrates a complete infrastructure-as-code and CI/CD setup to d
 
 ## 🌐 Architecture Overview
 
-```text
-                    ┌────────────┐
-                    │ GitHub Repo│
-                    └────┬───────┘
-                         │
-                ┌────────▼────────┐
-                │ GitHub Actions  │
-                └────┬───────┬────┘
-                     │       │
-             ┌───────▼─┐ ┌───▼─────────┐
-             │ Ansible │ │ .pem + IPs  │
-             │ Roles   │ │ from Secrets│
-             └────┬────┘ └─────┬───────┘
-                  ▼           ▼
-         ┌───────────────────────────┐
-         │ EC2: web-1  | Express + Docker │
-         │ EC2: web-2  | Express + Docker │
-         └────────┬──────────────────────┘
-                  ▼
-         ┌──────────────────────────┐
-         │ EC2: Nginx Load Balancer │
-         └──────────────────────────┘
-```
+[Architecture diagram](./assets/arch.png)
+
+
+--- 
+
+## 📷 Output
+
+[output1](./assets/output1.png)
+[output2](./assets/output2.png)
+[output3](./assets/output3.png)
+[output4](./assets/output4.png)
 
 ---
 
@@ -50,12 +38,13 @@ This project demonstrates a complete infrastructure-as-code and CI/CD setup to d
 
 A simple / route that responds from each server individually:
 
+```js
 app.get("/", (req, res) => {
 	res.json({
-		msg: `i am healthy - ${process.env.SERVER_NAME || "no-name"}`,
-		ip: ip.address(),
+		msg: `i am healthy - ${process.env.SERVER_NAME || "no-name"}`
 	});
 });
+```
 The response changes depending on which EC2 instance handled the request, and SERVER_NAME is injected via Docker environment variables.
 
 ---
