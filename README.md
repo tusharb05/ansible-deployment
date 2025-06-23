@@ -8,7 +8,7 @@ This project demonstrates a complete infrastructure-as-code and CI/CD setup to d
 
 | Layer              | Tool/Service                        |
 |-------------------|-------------------------------------|
-| App               | Node.js + Express (`/ping` route)   |
+| App               | Node.js + Express (`/` route)   |
 | Containerization  | Docker                              |
 | Infra Provision   | Ansible EC2 Modules (manual run)    |
 | Configuration     | Ansible Roles & Jinja Templates     |
